@@ -13,14 +13,27 @@ Technology stack:
 - Embedded OAuth2.0 [ory/fosite](https://github.com/ory/fosite/) for security.
 - Embedded static server using standard [net/http](https://golang.org/pkg/net/http/).
 
+## Project structure
+    .
+    ├── api              # Protobuf api definition
+    ├── front            # Frontend src
+    ├── server           # Server side src
+
 ## Preparing dev environment
-Use [Make](https://en.wikipedia.org/wiki/Make_(software))
+
+For local development you need:
+- [Go]()
+- [protobuf]() with [protoc-gen-go]() and [protoc-gen-grpc-web]()
+- [nodejs]()
+- [yarn]()
+
+Use [Make](https://en.wikipedia.org/wiki/Make_(software)) for install Protoc (currently support only for macOS)
 
 ```bash
-make prepare_dev
+make install-protoc
 ```
 
 ## Build
 ```bash
-make build
+make app-build
 ```

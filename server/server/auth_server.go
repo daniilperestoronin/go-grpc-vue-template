@@ -126,7 +126,7 @@ func (oauthServe *OAuth2Server) Serve() error {
 	http.HandleFunc("/login", OwnerHandler(clientConf))
 
 	log.Print("Starting OAuth2 server")
-	return http.ListenAndServe(":81", nil)
+	return http.ListenAndServe(":3846", nil)
 }
 
 func authEndpoint(rw http.ResponseWriter, req *http.Request) {
@@ -216,30 +216,6 @@ func authEndpoint(rw http.ResponseWriter, req *http.Request) {
 	oauth2.WriteAuthorizeResponse(rw, ar, response)
 }
 
-func introspectionEndpoint(rw http.ResponseWriter, req *http.Request) {
-	ctx := req.Context()
-	mySessionData := newSession("")
-	ir, err := oauth2.NewIntrospectionRequest(ctx, req, mySessionData)
-	if err != nil {
-		log.Printf("Error occurred in NewIntrospectionRequest: %+v", err)
-		oauth2.WriteIntrospectionError(rw, err)
-		return
-	}
-
-	oauth2.WriteIntrospectionResponse(rw, ir)
-}
-
-func revokeEndpoint(rw http.ResponseWriter, req *http.Request) {
-	// This context will be passed to all methods.
-	ctx := req.Context()
-
-	// This will accept the token revocation request and validate various parameters.
-	err := oauth2.NewRevocationRequest(ctx, req)
-
-	// All done, send the response.
-	oauth2.WriteRevocationResponse(rw, err)
-}
-
 func tokenEndpoint(rw http.ResponseWriter, req *http.Request) {
 	// This context will be passed to all methods.
 	ctx := req.Context()
@@ -282,6 +258,30 @@ func tokenEndpoint(rw http.ResponseWriter, req *http.Request) {
 	oauth2.WriteAccessResponse(rw, accessRequest, response)
 
 	// The client now has a valid access token
+}
+
+func introspectionEndpoint(rw http.ResponseWriter, req *http.Request) {
+	ctx := req.Context()
+	mySessionData := newSession("")
+	ir, err := oauth2.NewIntrospectionRequest(ctx, req, mySessionData)
+	if err != nil {
+		log.Printf("Error occurred in NewIntrospectionRequest: %+v", err)
+		oauth2.WriteIntrospectionError(rw, err)
+		return
+	}
+
+	oauth2.WriteIntrospectionResponse(rw, ir)
+}
+
+func revokeEndpoint(rw http.ResponseWriter, req *http.Request) {
+	// This context will be passed to all methods.
+	ctx := req.Context()
+
+	// This will accept the token revocation request and validate various parameters.
+	err := oauth2.NewRevocationRequest(ctx, req)
+
+	// All done, send the response.
+	oauth2.WriteRevocationResponse(rw, err)
 }
 
 //OwnerHandler hh
