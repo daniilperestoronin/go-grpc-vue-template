@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 	"fmt"
+	"html/template"
 	"log"
 	"net/http"
 	"time"
@@ -150,22 +151,10 @@ func (oauthServe *OAuth2Server) revokeEndpoint(rw http.ResponseWriter, req *http
 //OwnerHandler hh
 func (oauthServe *OAuth2Server) ownerHandler(c goauth.Config) func(rw http.ResponseWriter, req *http.Request) {
 	return func(rw http.ResponseWriter, req *http.Request) {
-		rw.Write([]byte("<h1>Login</h1>"))
 		req.ParseForm()
 		if req.Form.Get("username") == "" || req.Form.Get("password") == "" {
-			rw.Write([]byte(`<form method="post">
-			<ul>
-				<li>
-					<input type="text" name="username" placeholder="username"/> <small>try "peter"</small>
-				</li>
-				<li>
-					<input type="password" name="password" placeholder="password"/> <small>try "secret"</small><br>
-				</li>
-				<li>
-					<input type="submit" />
-				</li>
-			</ul>
-		</form>`))
+			loginPage := template.Must(template.ParseFiles("./server/static/login.html"))
+			loginPage.Execute(rw, nil)
 			return
 		}
 		token, err := c.PasswordCredentialsToken(context.Background(), req.Form.Get("username"), req.Form.Get("password"))
