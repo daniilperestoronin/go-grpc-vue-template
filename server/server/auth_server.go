@@ -159,8 +159,9 @@ func (oauthServe *OAuth2Server) ownerHandler(c goauth.Config) func(rw http.Respo
 		}
 		token, err := c.PasswordCredentialsToken(context.Background(), req.Form.Get("username"), req.Form.Get("password"))
 		if err != nil {
-			rw.Write([]byte(fmt.Sprintf(`<p>I tried to get a token but received an error: %s</p>`, err.Error())))
-			rw.Write([]byte(`<p><a href="/">Go back</a></p>`))
+			error := err.Error()
+			loginPage := template.Must(template.ParseFiles("./server/static/error.html"))
+			loginPage.Execute(rw, error)
 			return
 		}
 		rw.Write([]byte(fmt.Sprintf(`<p>Awesome, you just received an access token!<br><br>%s<br><br><strong>more info:</strong><br><br>%s</p>`, token.AccessToken, token)))
