@@ -15,7 +15,7 @@ import (
 	"github.com/ory/fosite/handler/openid"
 	"github.com/ory/fosite/storage"
 	"github.com/ory/fosite/token/jwt"
-	goauth "golang.org/x/oauth2"
+	goAuth "golang.org/x/oauth2"
 )
 
 // OAuth2Server serve
@@ -149,7 +149,7 @@ func (oauthServe *OAuth2Server) revokeEndpoint(rw http.ResponseWriter, req *http
 }
 
 //OwnerHandler hh
-func (oauthServe *OAuth2Server) ownerHandler(c goauth.Config) func(rw http.ResponseWriter, req *http.Request) {
+func (oauthServe *OAuth2Server) ownerHandler(c goAuth.Config) func(rw http.ResponseWriter, req *http.Request) {
 	return func(rw http.ResponseWriter, req *http.Request) {
 		req.ParseForm()
 		if req.Form.Get("username") == "" || req.Form.Get("password") == "" {
@@ -159,10 +159,18 @@ func (oauthServe *OAuth2Server) ownerHandler(c goauth.Config) func(rw http.Respo
 		}
 		token, err := c.PasswordCredentialsToken(context.Background(), req.Form.Get("username"), req.Form.Get("password"))
 		if err != nil {
-			error := err.Error()
-			loginPage := template.Must(template.ParseFiles("./server/static/error.html"))
-			loginPage.Execute(rw, error)
-			return
+			if rErr, ok := err.(*goAuth.RetrieveError); ok {
+				if rErr.Response.StatusCode == 401 {
+					loginPage := template.Must(template.ParseFiles("./server/static/login.html"))
+					loginPage.Execute(rw, "Invalid login or password")
+					return
+				}
+			} else {
+				error := err.Error()
+				errorPage := template.Must(template.ParseFiles("./server/static/error.html"))
+				errorPage.Execute(rw, error)
+				return
+			}
 		}
 		rw.Write([]byte(fmt.Sprintf(`<p>Awesome, you just received an access token!<br><br>%s<br><br><strong>more info:</strong><br><br>%s</p>`, token.AccessToken, token)))
 		rw.Write([]byte(`<p><a href="/">Go back</a></p>`))
@@ -187,12 +195,12 @@ func newSession(user string) *openid.DefaultSession {
 	}
 }
 
-var clientConf = goauth.Config{
+var clientConf = goAuth.Config{
 	ClientID:     "my-client",
 	ClientSecret: "foobar",
 	RedirectURL:  "http://localhost:3846/callback",
 	Scopes:       []string{"photos", "openid", "offline"},
-	Endpoint: goauth.Endpoint{
+	Endpoint: goAuth.Endpoint{
 		TokenURL: "http://localhost:3846/oauth2/token",
 		AuthURL:  "http://localhost:3846/oauth2/auth",
 	},
